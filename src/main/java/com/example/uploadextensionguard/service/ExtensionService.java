@@ -46,8 +46,9 @@ public class ExtensionService {
 
 	@Transactional
 	public void updateFixedExtension(String extension, boolean blocked) {
-		FixedExtension fixedExtension = fixedExtensionRepository.findById(extension)
-			.orElseThrow(() -> new ExtensionNotFoundException(extension));
+		String normalized = CustomExtension.normalizeExtension(extension);
+		FixedExtension fixedExtension = fixedExtensionRepository.findById(normalized)
+			.orElseThrow(() -> new ExtensionNotFoundException(normalized));
 		fixedExtension.updateBlocked(blocked); // JPA dirty checking
 	}
 
