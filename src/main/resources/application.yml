@@ -1,0 +1,71 @@
+spring:
+  profiles:
+    active: local
+
+server:
+  port: 8080
+
+extension:
+  max-custom: 200
+  dangerous:
+    - php
+    - php3
+    - php4
+    - php5
+    - phtml
+    - asp
+    - aspx
+    - ashx
+    - asmx
+    - jsp
+    - jspx
+    - cgi
+    - pl
+    - py
+    - rb
+    - sh
+  dangerous-warning: "서버 실행 가능한 확장자입니다. 보안에 주의하세요."
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  sql:
+    init:
+      mode: never
