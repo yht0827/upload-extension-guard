@@ -46,27 +46,42 @@ class ExtensionServiceTest {
 		@DisplayName("정상적인 확장자 추가")
 		void success() {
 			// given
-			CustomExtensionRequest request = createRequest("sh");
+			CustomExtensionRequest request = createRequest("pdf");
 
 			// when
 			CustomExtensionDto result = extensionService.addCustomExtension(request);
 
 			// then
-			assertThat(result.getExtension()).isEqualTo("sh");
-			assertThat(customExtensionRepository.existsByExtension("sh")).isTrue();
+			assertThat(result.getExtension()).isEqualTo("pdf");
+			assertThat(result.getWarning()).isNull();
+			assertThat(customExtensionRepository.existsByExtension("pdf")).isTrue();
+		}
+
+		@Test
+		@DisplayName("위험 확장자 추가 시 경고 메시지 포함")
+		void dangerousExtension_returnsWarning() {
+			// given
+			CustomExtensionRequest request = createRequest("php");
+
+			// when
+			CustomExtensionDto result = extensionService.addCustomExtension(request);
+
+			// then
+			assertThat(result.getExtension()).isEqualTo("php");
+			assertThat(result.getWarning()).contains("서버 실행 가능한 확장자");
 		}
 
 		@Test
 		@DisplayName("중복 확장자 추가 시 예외")
 		void duplicate_throwsException() {
 			// given
-			extensionService.addCustomExtension(createRequest("sh"));
-			CustomExtensionRequest duplicateRequest = createRequest("sh");
+			extensionService.addCustomExtension(createRequest("pdf"));
+			CustomExtensionRequest duplicateRequest = createRequest("pdf");
 
 			// when & then
 			assertThatThrownBy(() -> extensionService.addCustomExtension(duplicateRequest))
 				.isInstanceOf(DuplicateExtensionException.class)
-				.hasMessageContaining("sh");
+				.hasMessageContaining("pdf");
 		}
 
 		@Test
@@ -128,14 +143,14 @@ class ExtensionServiceTest {
 		@DisplayName("정상 삭제")
 		void success() {
 			// given
-			CustomExtensionDto created = extensionService.addCustomExtension(createRequest("sh"));
-			assertThat(customExtensionRepository.existsByExtension("sh")).isTrue();
+			CustomExtensionDto created = extensionService.addCustomExtension(createRequest("pdf"));
+			assertThat(customExtensionRepository.existsByExtension("pdf")).isTrue();
 
 			// when
 			extensionService.deleteCustomExtension(created.getId());
 
 			// then
-			assertThat(customExtensionRepository.existsByExtension("sh")).isFalse();
+			assertThat(customExtensionRepository.existsByExtension("pdf")).isFalse();
 		}
 
 		@Test

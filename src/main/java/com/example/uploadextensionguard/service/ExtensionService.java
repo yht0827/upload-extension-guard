@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.uploadextensionguard.config.ExtensionProperties;
 import com.example.uploadextensionguard.dto.CustomExtensionRequest;
 import com.example.uploadextensionguard.dto.ExtensionResponse;
 import com.example.uploadextensionguard.dto.ExtensionResponse.CustomExtensionDto;
@@ -16,6 +17,7 @@ import com.example.uploadextensionguard.exception.DuplicateExtensionException;
 import com.example.uploadextensionguard.exception.ExtensionNotFoundException;
 import com.example.uploadextensionguard.exception.MaxExtensionLimitException;
 import com.example.uploadextensionguard.repository.CustomExtensionRepository;
+import com.example.uploadextensionguard.repository.ExtensionLockRepository;
 import com.example.uploadextensionguard.repository.FixedExtensionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -25,10 +27,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class ExtensionService {
 
-	private static final int MAX_CUSTOM_EXTENSIONS = 200;
-
+	private final ExtensionProperties extensionProperties;
 	private final FixedExtensionRepository fixedExtensionRepository;
 	private final CustomExtensionRepository customExtensionRepository;
+	private final ExtensionLockRepository extensionLockRepository;
 
 	public ExtensionResponse getAllExtensions() {
 		List<FixedExtensionDto> fixed = fixedExtensionRepository.findAllByOrderByExtensionAsc()
@@ -54,6 +56,9 @@ public class ExtensionService {
 
 	@Transactional
 	public CustomExtensionDto addCustomExtension(CustomExtensionRequest request) {
+		// 비관적 락 획득 (동시성 제어)
+		extensionLockRepository.acquireLock();
+
 		CustomExtension customExtension = CustomExtension.create(request.getExtension());
 
 		checkDuplicate(customExtension.getExtension());
@@ -61,8 +66,10 @@ public class ExtensionService {
 
 		try {
 			CustomExtension saved = customExtensionRepository.save(customExtension);
-			return new CustomExtensionDto(saved.getId(), saved.getExtension());
+			String warning = checkDangerousExtension(saved.getExtension());
+			return new CustomExtensionDto(saved.getId(), saved.getExtension(), warning);
 		} catch (DataIntegrityViolationException e) {
+			// 동시 요청 시 checkDuplicate 통과 후 DB unique 제약 위반 가능 (race condition 대응)
 			if (e.getMessage() != null && e.getMessage().toLowerCase().contains("unique")) {
 				throw new DuplicateExtensionException(customExtension.getExtension());
 			}
@@ -87,8 +94,15 @@ public class ExtensionService {
 	}
 
 	private void checkMaxLimit() {
-		if (customExtensionRepository.count() >= MAX_CUSTOM_EXTENSIONS) {
+		if (customExtensionRepository.count() >= extensionProperties.maxCustom()) {
 			throw new MaxExtensionLimitException();
 		}
+	}
+
+	private String checkDangerousExtension(String extension) {
+		if (extensionProperties.isDangerous(extension)) {
+			return extensionProperties.dangerousWarning();
+		}
+		return null;
 	}
 }

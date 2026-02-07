@@ -18,7 +18,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.uploadextensionguard.dto.CustomExtensionRequest;
 import com.example.uploadextensionguard.entity.CustomExtension;
+import com.example.uploadextensionguard.entity.ExtensionLock;
 import com.example.uploadextensionguard.repository.CustomExtensionRepository;
+import com.example.uploadextensionguard.repository.ExtensionLockRepository;
 
 @SpringBootTest
 @DisplayName("ExtensionService 동시성 테스트")
@@ -30,9 +32,15 @@ class ExtensionServiceConcurrencyTest {
 	@Autowired
 	private CustomExtensionRepository customExtensionRepository;
 
+	@Autowired
+	private ExtensionLockRepository extensionLockRepository;
+
 	@BeforeEach
 	void setUp() {
 		customExtensionRepository.deleteAll();
+		if (!extensionLockRepository.existsById("LOCK")) {
+			extensionLockRepository.save(new ExtensionLock("LOCK"));
+		}
 	}
 
 	@Test
@@ -77,7 +85,7 @@ class ExtensionServiceConcurrencyTest {
 	}
 
 	@Test
-	@DisplayName("200개 제한 근처에서 동시 추가 - 레이스 컨디션 발생 가능")
+	@DisplayName("200개 제한 동시 추가 - 비관적 락으로 제한 유지")
 	void maxLimitConcurrency() throws InterruptedException {
 		// given - 195개 미리 추가
 		for (int i = 0; i < 195; i++) {
@@ -111,7 +119,7 @@ class ExtensionServiceConcurrencyTest {
 
 		// then
 		assertThat(successCount.get() + failCount.get()).isEqualTo(threadCount);
-		// 동시성 제어 없이는 200개 초과 가능 (현재 구현은 제어 없음)
-		// 동시성 제어 추가 시: assertThat(customExtensionRepository.count()).isLessThanOrEqualTo(200);
+		assertThat(successCount.get()).isEqualTo(5); // 195 + 5 = 200
+		assertThat(customExtensionRepository.count()).isEqualTo(200);
 	}
 }
