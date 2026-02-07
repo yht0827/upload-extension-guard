@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,12 @@
         <section class="section">
             <h2>고정 확장자</h2>
             <div id="fixed-extensions" class="checkbox-group">
+                <label th:each="ext : ${fixedExtensions}">
+                    <input type="checkbox"
+                           th:data-extension="${ext.extension}"
+                           th:checked="${ext.blocked}">
+                    <span th:text="${ext.extension}"></span>
+                </label>
             </div>
         </section>
 
@@ -22,8 +28,12 @@
                 <input type="text" id="custom-input" placeholder="확장자 입력" maxlength="20">
                 <button id="add-btn" type="button">추가</button>
             </div>
-            <p class="count">(<span id="custom-count">0</span>/200)</p>
+            <p class="count">(<span id="custom-count" th:text="${customCount}">0</span>/200)</p>
             <div id="custom-extensions" class="tag-group">
+                <span class="tag" th:each="ext : ${customExtensions}">
+                    <span th:text="${ext.extension}"></span>
+                    <button class="delete-btn" th:data-id="${ext.id}" type="button">X</button>
+                </span>
             </div>
         </section>
     </div>

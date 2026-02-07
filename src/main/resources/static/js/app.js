@@ -1,62 +1,27 @@
 const API_BASE = '/api/extensions';
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadExtensions();
     setupEventListeners();
 });
 
 function setupEventListeners() {
+    // 추가 버튼
     document.getElementById('add-btn').addEventListener('click', addCustomExtension);
     document.getElementById('custom-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             addCustomExtension();
         }
     });
-}
 
-async function loadExtensions() {
-    try {
-        const response = await fetch(API_BASE);
-        if (!response.ok) throw new Error('Failed to load extensions');
-
-        const data = await response.json();
-        renderFixedExtensions(data.fixed);
-        renderCustomExtensions(data.custom);
-    } catch (error) {
-        console.error('Error loading extensions:', error);
-    }
-}
-
-function renderFixedExtensions(extensions) {
-    const container = document.getElementById('fixed-extensions');
-    container.innerHTML = extensions.map(ext => `
-        <label>
-            <input type="checkbox"
-                   data-extension="${ext.extension}"
-                   ${ext.blocked ? 'checked' : ''}>
-            ${ext.extension}
-        </label>
-    `).join('');
-
-    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    // 고정 확장자 체크박스
+    document.querySelectorAll('#fixed-extensions input[type="checkbox"]').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
             updateFixedExtension(e.target.dataset.extension, e.target.checked);
         });
     });
-}
 
-function renderCustomExtensions(extensions) {
-    const container = document.getElementById('custom-extensions');
-    document.getElementById('custom-count').textContent = extensions.length;
-
-    container.innerHTML = extensions.map(ext => `
-        <span class="tag">
-            ${ext.extension}
-            <button class="delete-btn" data-id="${ext.id}" type="button">X</button>
-        </span>
-    `).join('');
-
-    container.querySelectorAll('.delete-btn').forEach(btn => {
+    // 커스텀 확장자 삭제 버튼
+    document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             deleteCustomExtension(e.target.dataset.id);
         });
@@ -74,11 +39,11 @@ async function updateFixedExtension(extension, blocked) {
         if (!response.ok) {
             const error = await response.json();
             alert(error.message);
-            loadExtensions();
+            location.reload();
         }
     } catch (error) {
         console.error('Error updating fixed extension:', error);
-        loadExtensions();
+        location.reload();
     }
 }
 
@@ -105,12 +70,12 @@ async function addCustomExtension() {
         }
 
         const result = await response.json();
-        input.value = '';
-        loadExtensions();
 
         if (result.warning) {
             alert(`[주의] ${result.warning}`);
         }
+
+        location.reload();
     } catch (error) {
         console.error('Error adding custom extension:', error);
     }
@@ -128,7 +93,7 @@ async function deleteCustomExtension(id) {
             return;
         }
 
-        loadExtensions();
+        location.reload();
     } catch (error) {
         console.error('Error deleting custom extension:', error);
     }
