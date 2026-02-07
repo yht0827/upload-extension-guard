@@ -20,9 +20,20 @@ public class ExtensionResponse {
 	}
 
 	@Getter
-	@AllArgsConstructor
 	public static class CustomExtensionDto {
 		private Long id;
 		private String extension;
+		private String warning;
+
+		public CustomExtensionDto(Long id, String extension) {
+			this.id = id;
+			this.extension = extension;
+		}
+
+		public CustomExtensionDto(Long id, String extension, String warning) {
+			this.id = id;
+			this.extension = extension;
+			this.warning = warning;
+		}
 	}
 }

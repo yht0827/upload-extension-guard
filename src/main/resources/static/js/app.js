@@ -104,8 +104,13 @@ async function addCustomExtension() {
             return;
         }
 
+        const result = await response.json();
         input.value = '';
         loadExtensions();
+
+        if (result.warning) {
+            alert(`[주의] ${result.warning}`);
+        }
     } catch (error) {
         console.error('Error adding custom extension:', error);
     }
