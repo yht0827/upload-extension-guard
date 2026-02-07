@@ -3,7 +3,6 @@ package com.example.uploadextensionguard.repository;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,35 +21,6 @@ class CustomExtensionRepositoryTest {
 
 	@Autowired
 	private CustomExtensionRepository customExtensionRepository;
-
-	@Nested
-	@DisplayName("findByExtension")
-	class FindByExtension {
-
-		@Test
-		@DisplayName("존재하는 확장자 조회")
-		void found() {
-			// given
-			customExtensionRepository.save(CustomExtension.create("pdf"));
-
-			// when
-			Optional<CustomExtension> result = customExtensionRepository.findByExtension("pdf");
-
-			// then
-			assertThat(result).isPresent();
-			assertThat(result.get().getExtension()).isEqualTo("pdf");
-		}
-
-		@Test
-		@DisplayName("존재하지 않는 확장자 조회")
-		void notFound() {
-			// when
-			Optional<CustomExtension> result = customExtensionRepository.findByExtension("notexist");
-
-			// then
-			assertThat(result).isEmpty();
-		}
-	}
 
 	@Nested
 	@DisplayName("existsByExtension")

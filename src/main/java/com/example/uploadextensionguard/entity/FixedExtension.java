@@ -23,7 +23,6 @@ public class FixedExtension extends BaseTimeEntity {
 
 	public FixedExtension(String extension) {
 		this.extension = extension;
-		this.blocked = false;
 	}
 
 	public void updateBlocked(boolean blocked) {
