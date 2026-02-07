@@ -222,7 +222,60 @@ src/main/resources/
 
 ---
 
-# 5. 기술 스택
+# 5. 테스트
+
+## 5.1 테스트 범위
+
+| 계층 | 테스트 클래스 | 테스트 방식 |
+|------|--------------|------------|
+| Entity | CustomExtensionTest | 단위 테스트 |
+| Repository | CustomExtensionRepositoryTest | @DataJpaTest |
+| Service | ExtensionServiceTest | 단위 테스트 (Mock) |
+| Service | ExtensionServiceConcurrencyTest | 동시성 테스트 |
+| Controller | ExtensionControllerTest | @WebMvcTest |
+| Exception | GlobalExceptionHandlerTest | 단위 테스트 |
+
+## 5.2 주요 테스트 케이스
+
+### Entity (CustomExtension)
+
+| 테스트 | 설명 |
+|--------|------|
+| 정상 생성 | 영문 소문자, 숫자 포함 확장자 |
+| 정규화 | 대문자→소문자, 공백 제거, 점 제거 |
+| 검증 실패 | 빈 값, 20자 초과, 특수문자 |
+| 경계값 | 1자, 20자 확장자 |
+
+### Service (ExtensionService)
+
+| 테스트 | 설명 |
+|--------|------|
+| 커스텀 추가 | 정상 추가, 위험 확장자 경고 |
+| 중복 검증 | 커스텀 중복, 고정 확장자 충돌 |
+| 형식 검증 | 특수문자, 공백 포함 시 예외 |
+| 개수 제한 | 200개 초과 시 예외 |
+| 삭제 | 정상 삭제, 미존재 시 예외 |
+| 고정 상태 변경 | 차단/해제, 미존재 시 예외 |
+
+### Controller (ExtensionController)
+
+| 테스트 | 설명 |
+|--------|------|
+| GET /api/extensions | 전체 조회 성공 |
+| PATCH /api/extensions/fixed | 상태 변경, 404, 400 |
+| POST /api/extensions/custom | 추가 201, 중복 409, 초과 400 |
+| DELETE /api/extensions/custom/{id} | 삭제 204, 404 |
+
+### 동시성 (Concurrency)
+
+| 테스트 | 설명 |
+|--------|------|
+| 중복 추가 | 동시에 같은 확장자 추가 시 하나만 성공 |
+| 200개 제한 | 195개 + 동시 10개 요청 → 정확히 200개만 저장 |
+
+---
+
+# 6. 기술 스택
 
 | 영역 | 기술 |
 |------|------|
